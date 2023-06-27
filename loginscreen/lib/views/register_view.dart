@@ -11,11 +11,13 @@ class RegisterView extends StatefulWidget {
 class _RegisterViewState extends State<RegisterView> {
   late final TextEditingController _email;
   late final TextEditingController _password;
+  late final TextEditingController _username;
 
   @override
   void initState() {
     _email = TextEditingController();
     _password = TextEditingController();
+    _username = TextEditingController();
     super.initState();
   }
 
@@ -23,6 +25,7 @@ class _RegisterViewState extends State<RegisterView> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _username.dispose();
     super.dispose();
   }
 
@@ -50,15 +53,28 @@ class _RegisterViewState extends State<RegisterView> {
               hintText: "Enter your password here",
             ),
           ),
+          TextField(
+            controller: _username,
+            enableSuggestions: false,
+            autocorrect: false,
+            keyboardType: TextInputType.name,
+            decoration: const InputDecoration(
+              hintText: "Enter your username here",
+            ),
+          ),
           TextButton.icon(
               onPressed: () async {
                 final email = _email.text; 
                 final password = _password.text;
+                final username = _username.text;
+
                 try {
                 final userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
                   email: email,
                   password: password,
-                );
+                ).then((userCredential) {
+                  userCredential.user?.updateDisplayName(username);
+                });
                 print(userCredential);
                 } on FirebaseAuthException catch (e) {
                   if (e.code == 'weak-password') {
@@ -69,7 +85,7 @@ class _RegisterViewState extends State<RegisterView> {
                   }
                   else if (e.code == 'invalid-email') {
                     print("The Email you entered is invalid!");
-                  }
+                  } 
                 }
               },
               icon: const Icon(Icons.app_registration),
@@ -79,7 +95,8 @@ class _RegisterViewState extends State<RegisterView> {
             onPressed: () {
               Navigator.pushNamedAndRemoveUntil(
                 context, '/login/',
-                (route) => false);
+                (route) => false
+                );
             },
             icon: const Icon(Icons.login),
             label: const Text('Already have an account? Login here!'),
